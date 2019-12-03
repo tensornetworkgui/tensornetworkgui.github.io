@@ -152,6 +152,10 @@ Vue.component(
                     if (node.position.y > workspace.height - t.baseNodeWidth / 2) {
                         node.position.y = workspace.height - t.baseNodeWidth / 2;
                     }
+                    if (t.state.snapToGrid) {
+                        node.position.x = Math.round(node.position.x / t.gridSpacing) * t.gridSpacing;
+                        node.position.y = Math.round(node.position.y / t.gridSpacing) * t.gridSpacing;
+                    }
                 });
             },
             onAxisMouseDown: function(axis) {

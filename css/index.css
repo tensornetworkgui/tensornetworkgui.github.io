@@ -21,7 +21,10 @@ limitations under the License.
 
 svg.workspace {
 	float: left;
-    background-color: #f9f9f9;
+}
+
+.app > .workspace {
+    position: absolute;
 }
 
 svg.workspace .drag-selector {
@@ -30,8 +33,24 @@ svg.workspace .drag-selector {
 	fill: rgba(200, 200, 200, 0.5);
 }
 
-a.export {
+svg.grid {
+    background-color: #f9f9f9;
+}
+
+.controls {
 	position: absolute;
+}
+
+.controls a {
+    padding: 5px;
+}
+
+.checkbox-holder {
+	padding: 10px;
+}
+
+.checkbox-holder label {
+	padding: 0;
 }
 
 svg text {
@@ -56,6 +75,10 @@ section {
 	height: 200px;
 }
 
+.tensor-creator .workspace {
+    background-color: #f9f9f9;
+}
+
 .delete {
 	text-align: right;
 	float: right;
@@ -69,8 +92,15 @@ section {
 .code-output {
 	position: absolute;
 	top: 600px;
-	width: 900px;
+	width: 800px;
 	padding: 10px;
+}
+
+pre {
+	padding: 10px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	word-wrap: break-spaces;
 }
 
 label {

@@ -18,6 +18,14 @@ let app = new Vue({
         state: initialState // now state object is reactive, whereas initialState is not
     },
     methods: {
+        newWorkspace: function(event) {
+            event.preventDefault();
+            let proceed = window.confirm("Are you sure you want to delete this workspace and start a new one?");
+            if (proceed) {
+                window.localStorage.setItem("state", null);
+                this.state = JSON.parse(JSON.stringify(initialState));
+            }
+        },
         exportSVG: function(event) {
             event.preventDefault();
             let serializer = new XMLSerializer();
@@ -32,14 +40,38 @@ let app = new Vue({
             document.body.removeChild(link);
         }
     },
+    mounted: function() {
+        let savedState = window.localStorage.getItem("state");
+        if (savedState != null) {
+            try {
+                this.state = JSON.parse(savedState);
+            }
+            catch (e) {
+            }
+        }
+    },
+    watch: {
+        state: {
+            handler: function() {
+                window.localStorage.setItem("state", JSON.stringify(this.state));
+            },
+            deep: true
+        }
+    },
     template: `
-        <div>
         <div class="app">
 			<workspace :state="state" />
-			<a href="" class="export" @click="exportSVG">Export SVG</a>
+			<grid :state="state" />
+			<div class="controls">
+                <a href="" class="new-workspace" @click="newWorkspace">New Workspace</a>
+                <a href="" class="export" @click="exportSVG">Export SVG</a>
+                <span class="checkbox-holder">
+                    <input type="checkbox" id="checkbox-snapToGrid" v-model="state.snapToGrid">
+                    <label for="checkbox-snapToGrid">Snap to grid</label>
+                </span>
+            </div>
 			<toolbar :state="state" />
-        </div>
-        <code-output :state="state" />
+            <code-output :state="state" />
         </div>
 
     `

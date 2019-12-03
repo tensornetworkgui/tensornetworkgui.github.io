@@ -15,6 +15,7 @@
 Vue.component(
     'toolbar',
     {
+        mixins: [mixinGeometry],
         props: {
             state: Object
         },
@@ -51,6 +52,10 @@ Vue.component(
                 let node = JSON.parse(JSON.stringify(this.node));
                 node.name = this.copyNodeName;
                 node.position = {x: workspace.width / 2, y: workspace.height / 2};
+                if (this.state.snapToGrid) {
+                    node.position.x = Math.round(node.position.x / this.gridSpacing) * this.gridSpacing;
+                    node.position.y = Math.round(node.position.y / this.gridSpacing) * this.gridSpacing;
+                }
 
                 this.state.nodes.push(node);
                 this.state.selectedNodes = [node];
@@ -167,6 +172,10 @@ Vue.component(
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
 
                 this.node.position = {x: workspace.width / 2, y: workspace.height / 2};
+                if (this.state.snapToGrid) {
+                    this.node.position.x = Math.round(this.node.position.x / this.gridSpacing) * this.gridSpacing;
+                    this.node.position.y = Math.round(this.node.position.y / this.gridSpacing) * this.gridSpacing;
+                }
 
                 this.state.nodes.push(this.node);
                 this.reset();
@@ -239,16 +248,16 @@ Vue.component(
                 let workspace = document.getElementById('tensor-creator-workspace').getBoundingClientRect();
 
                 this.dragSelector.dragging = true;
-                this.dragSelector.startX = event.pageX - workspace.left;
-                this.dragSelector.startY = event.pageY - workspace.top;
-                this.dragSelector.endX = event.pageX - workspace.left;
-                this.dragSelector.endY = event.pageY - workspace.top;
+                this.dragSelector.startX = event.clientX - workspace.left;
+                this.dragSelector.startY = event.clientY - workspace.top;
+                this.dragSelector.endX = event.clientX - workspace.left;
+                this.dragSelector.endY = event.clientY - workspace.top;
             },
             onMouseMove: function (event) {
                 let workspace = document.getElementById('tensor-creator-workspace').getBoundingClientRect();
 
-                this.dragSelector.endX = event.pageX - workspace.left;
-                this.dragSelector.endY = event.pageY - workspace.top;
+                this.dragSelector.endX = event.clientX - workspace.left;
+                this.dragSelector.endY = event.clientY - workspace.top;
             },
             onMouseUp: function () {
                 document.removeEventListener('mousemove', this.onMouseMove);

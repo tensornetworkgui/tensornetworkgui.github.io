@@ -48,16 +48,16 @@ Vue.component(
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
 
                 this.dragSelector.dragging = true;
-                this.dragSelector.startX = event.pageX - workspace.left;
-                this.dragSelector.startY = event.pageY - workspace.top;
-                this.dragSelector.endX = event.pageX - workspace.left;
-                this.dragSelector.endY = event.pageY - workspace.top;
+                this.dragSelector.startX = event.clientX - workspace.left;
+                this.dragSelector.startY = event.clientY - workspace.top;
+                this.dragSelector.endX = event.clientX - workspace.left;
+                this.dragSelector.endY = event.clientY - workspace.top;
             },
             onMouseMove: function(event) {
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
 
-                this.dragSelector.endX = event.pageX - workspace.left;
-                this.dragSelector.endY = event.pageY - workspace.top;
+                this.dragSelector.endX = event.clientX - workspace.left;
+                this.dragSelector.endY = event.clientY - workspace.top;
             },
             onMouseUp: function() {
                 document.removeEventListener('mousemove', this.onMouseMove);
@@ -150,6 +150,40 @@ Vue.component(
 			</svg>
 		`
 	}
+);
+
+Vue.component(
+    'grid',
+    {
+        mixins: [mixinGeometry],
+        props: {
+            state: Object
+        },
+        data: function() {
+            return {
+                width: 900,
+                height: 600,
+            }
+        },
+        computed: {
+            points: function() {
+                let points = [];
+                for (let x = this.gridSpacing; x < 900; x += this.gridSpacing) {
+                    for (let y = this.gridSpacing; y < 600; y += this.gridSpacing) {
+                        points.push({x: x, y: y});
+                    }
+                }
+                return points;
+            }
+        },
+        template: `
+			<svg class="grid" id="grid" xmlns="http://www.w3.org/2000/svg"
+			    :width="width" :height="height">
+			    <circle v-if="state.snapToGrid" v-for="point in points" :cx="point.x" :cy="point.y" r="1" stroke="none"
+			        fill="#ddd" />
+			</svg>
+		`
+    }
 );
 
 Vue.component(
