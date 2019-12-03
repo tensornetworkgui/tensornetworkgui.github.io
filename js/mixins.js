@@ -58,7 +58,8 @@ let mixinGeometry = {
 			axisLength: 50,
 			baseNodeWidth: 50,
 			nodeCornerRadius: 10,
-			axisLabelRadius: 1.2
+			axisLabelRadius: 1.2,
+			gridSpacing: 20
 		}
 	},
 	methods: {

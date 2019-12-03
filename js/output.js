@@ -18,6 +18,14 @@ Vue.component(
         props: {
             state: Object
         },
+        data: function() {
+            return {
+                ncon: true  // Use ncon() in output code.
+            }
+        },
+        created: function() {
+            window.hl
+        },
         computed: {
             outputCode: function() {
                 let code = `import numpy as np\nimport tensornetwork as tn\n`;
@@ -34,13 +42,58 @@ Vue.component(
 
                 code += `\n# Edge definitions\n\n`;
 
-                for (let i = 0; i < this.state.edges.length; i++) {
-                    let edge = this.state.edges[i];
-                    let name = this.edgeName(edge);
-                    code += `tn.connect(${edge[0][0]}[${edge[0][1]}], ${edge[1][0]}[${edge[1][1]}]${name})\n`;
+                if (this.ncon) {
+                    let tensors = [];
+                    let network_structure = [];
+                    let danglingIndex = -1;
+                    for (let i = 0; i < this.state.nodes.length; i++) {
+                        let node = this.state.nodes[i];
+                        tensors.push(node.name);
+                        let indices = [];
+                        for (let axis = 0; axis < node.axes.length; axis++) {
+                            let connected = false;
+                            for (let j = 0; j < this.state.edges.length; j++) {
+                                let edge = this.state.edges[j];
+                                if ((edge[0][0] === node.name && edge[0][1] === axis)
+                                    || (edge[1][0] === node.name && edge[1][1] === axis)) {
+                                    indices.push(j + 1);
+                                    connected = true;
+                                    break;
+                                }
+                            }
+                            if (!connected) {
+                                indices.push(danglingIndex);
+                                danglingIndex -= 1;
+                            }
+                        }
+                        network_structure.push(indices);
+                    }
+                    code += `tn.ncon([`;
+                    tensors.forEach(function(tensor) {
+                        code += tensor + `,`;
+                    });
+                    code += `], [`;
+                    network_structure.forEach(function(indices) {
+                        code += `(`;
+                        indices.forEach(function(index) {
+                            code += index + `,`;
+                        });
+                        code += `), `;
+                    });
+                    code += `])`
                 }
 
+                else {
+                    for (let i = 0; i < this.state.edges.length; i++) {
+                        let edge = this.state.edges[i];
+                        let name = this.edgeName(edge);
+                        code += `tn.connect(${edge[0][0]}[${edge[0][1]}], ${edge[1][0]}[${edge[1][1]}]${name})\n`;
+                    }
+                }
                 return code;
+            },
+            highlightedCode: function() {
+                return window.hljs.highlight('python', this.outputCode).value;
             }
         },
         methods: {
@@ -75,8 +128,11 @@ Vue.component(
         },
 		template: `
 			<div class="code-output">
-                <h2>TensorNetwork Output</h2>
-                <pre>{{outputCode}}</pre>
+			    <span class="checkbox-holder">
+                    <input type="checkbox" id="checkbox-ncon" v-model="ncon">
+                    <label for="checkbox-ncon">Use <code>ncon()</code></label>
+                </span>
+                <pre><code class="hljs" v-html="highlightedCode"></code></pre>
 			</div>
 		`
 	}
