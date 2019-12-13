@@ -30,6 +30,8 @@ let app = new Vue({
             event.preventDefault();
             let serializer = new XMLSerializer();
             let workspace = document.getElementById('workspace');
+            let savedState = document.getElementById('saved-state');
+            savedState.textContent = JSON.stringify(this.state);
             let blob = new Blob([serializer.serializeToString(workspace)], {type:"image/svg+xml;charset=utf-8"});
             let url = URL.createObjectURL(blob);
             let link = document.createElement('a');
@@ -38,6 +40,35 @@ let app = new Vue({
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            savedState.textContent = '';
+        },
+        loadFile: function() {
+            let file = document.getElementById('load-file').files[0];
+            let reader = new FileReader();
+            reader.readAsText(file, 'UTF-8');
+            let t = this;
+            reader.onload = function(event) {
+                let svgString = event.target.result;
+                let parser = new DOMParser();
+                let svg = parser.parseFromString(svgString, 'image/svg+xml');
+                let savedState = svg.getElementById('saved-state');
+                if (savedState == null || savedState.textContent == ''
+                    || savedState.textContent == null) {
+                    alert("ERROR: Could not find a saved workspace inside " + file.name);
+                }
+                else {
+                    try {
+                        t.state = JSON.parse(savedState.textContent);
+                    }
+                    catch (e) {
+                        alert("ERROR: Could not read the saved workspace inside " + file.name);
+                    }
+                }
+            }
+            reader.onerror = function(event) {
+                console.error(event.target.result);
+            }
+            document.getElementById('load-file').value = null;
         }
     },
     mounted: function() {
@@ -69,6 +100,8 @@ let app = new Vue({
                     <input type="checkbox" id="checkbox-snapToGrid" v-model="state.snapToGrid">
                     <label for="checkbox-snapToGrid">Snap to grid</label>
                 </span>
+                <label for="load-file">Load workspace from SVG</label>
+                <input type="file" id="load-file" accept="image/svg+xml" @change="loadFile($event.target.files)">
             </div>
 			<toolbar :state="state" />
             <code-output :state="state" />

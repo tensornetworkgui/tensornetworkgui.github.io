@@ -139,6 +139,7 @@ Vue.component(
 		template: `
 			<svg class="workspace" id="workspace" xmlns="http://www.w3.org/2000/svg"
 			    :width="width" :height="height" @mousedown="onMouseDown">
+                <text id="saved-state" display="none"></text>
                 <proto-edge v-if="protoEdge.dragging" :x="protoEdge.x" :y="protoEdge.y"
 				    :node="protoEdge.node" :axis="protoEdge.axis" />
 				<edge v-for="edge in state.edges" :edge="edge" :state="state" /> 
