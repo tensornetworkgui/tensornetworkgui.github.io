@@ -80,6 +80,11 @@ let app = new Vue({
             catch (e) {
             }
         }
+        else {
+            // First-time user; load example state
+            this.state.nodes = JSON.parse(JSON.stringify(exampleState.nodes));
+            this.state.edges = JSON.parse(JSON.stringify(exampleState.edges));
+        }
     },
     watch: {
         state: {
