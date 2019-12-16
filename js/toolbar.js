@@ -43,7 +43,7 @@ Vue.component(
                 this.state.nodes = this.state.nodes.filter(function(node) {
                     return node.name !== selectedName;
                 });
-                this.selectedNodes = [];
+                this.state.selectedNodes = [];
             },
             copyNode: function(event) {
                 event.preventDefault();
