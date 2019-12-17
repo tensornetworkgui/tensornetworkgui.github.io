@@ -71,11 +71,11 @@ section {
 	border-bottom: 1px solid #ddd;
 }
 
-.tensor-creator .svg-container {
+.tensor-editor .svg-container {
 	height: 200px;
 }
 
-.tensor-creator .workspace {
+.tensor-editor .workspace {
     background-color: #f9f9f9;
 }
 

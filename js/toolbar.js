@@ -28,23 +28,6 @@ Vue.component(
             deselectNode: function() {
                 this.state.selectedNodes = [];
             },
-            deleteNode: function(event) {
-                event.preventDefault();
-                let selectedName = this.state.selectedNodes[0].name;
-
-                this.state.edges = this.state.edges.filter(function(edge) {
-                    if (edge[0][0] === selectedName || edge[1][0] === selectedName) {
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
-                });
-                this.state.nodes = this.state.nodes.filter(function(node) {
-                    return node.name !== selectedName;
-                });
-                this.state.selectedNodes = [];
-            },
             copyNode: function(event) {
                 event.preventDefault();
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
@@ -61,9 +44,6 @@ Vue.component(
                 this.state.selectedNodes = [node];
                 this.copyNodeName = '';
             },
-            rotate: function(angle) {
-                this.node.rotation += angle;
-            }
         },
         computed: {
             node: function() {
@@ -83,39 +63,28 @@ Vue.component(
         },
         template: `
             <div class="toolbar">
-                <div v-if="state.selectedNodes.length === 0">
-                    <tensor-creator :state="state" />
-                    <section>
+                <div v-if="state.selectedNodes.length < 2">
+                    <tensor-editor :state="state" />
+                    <section v-if="state.selectedNodes.length === 0">
                         <h3>Selecting nodes</h3>
                         <p>Click a node to select it for editing.</p>
                         <p>Drag-select or shift-click multiple nodes to drag as a group and adjust alignment and
                         spacing.</p>
                     </section>
-                </div>
-                <div v-else-if="state.selectedNodes.length === 1">
-                    <section>
+                    <section v-else>
                         <div class="button-holder">
                             <button @click="deselectNode">Create new node</button>
                         </div>
-                    </section>
-                    <section>
-                        <div>
-                            <a class="delete" href="" @click="deleteNode(event)">delete</a>
-                            <h2>Node: {{node.name}}</h2>
-                        </div>
-                        <h4>Set LaTeX Label</h4>
-                        <input type="text" v-model="node.displayName" placeholder="LaTeX label" />
                         <h4>Copy Node</h4>
                         <form @submit="copyNode">
                             <input type="text" v-model="copyNodeName" placeholder="name of copy" />
                             <input type="submit" value="Copy" :disabled="copyNodeDisabled" />
                         </form>
-                        <h4>Rotate</h4>
-                        <button @click="rotate(-Math.PI / 4)">Counterclockwise</button>
-                        <button @click="rotate(Math.PI / 4)">Clockwise</button>
                     </section>
-                    <toolbar-edge-section :state="state" />
-                    <toolbar-axis-section :state="state" />
+                    <div v-if="state.selectedNodes.length === 1">
+                        <toolbar-edge-section :state="state" />
+                        <toolbar-axis-section :state="state" />
+                    </div>
                 </div>
                 <div v-else>
                     <toolbar-multinode-section :state="state" />
@@ -126,7 +95,7 @@ Vue.component(
 );
 
 Vue.component(
-    'tensor-creator',
+    'tensor-editor',
     {
         mixins: [mixinGeometry],
         props: {
@@ -137,6 +106,7 @@ Vue.component(
                 size1: 1,
                 size2: 1,
                 hue: 0,
+                rotation: 0,
                 node: {},
                 width: 250,
                 height: 250,
@@ -153,34 +123,116 @@ Vue.component(
             this.reset();
         },
         watch: {
+            'state.selectedNodes': function() {
+                if (this.state.selectedNodes.length !== 1) {
+                    this.reset();
+                }
+                else {
+                    this.node = JSON.parse(JSON.stringify(this.state.selectedNodes[0]));
+                    this.node.position = JSON.parse(JSON.stringify(this.nodeInitial.position));
+                    this.size1 = this.node.size[0];
+                    this.size2 = this.node.size[1];
+                    this.hue = this.node.hue;
+                    this.rotation = this.node.rotation;
+                }
+            },
             size1: function() {
-                this.reset();
+                this.resize();
             },
             size2: function() {
-                this.reset();
+                this.resize();
             },
             hue: function() {
                 this.node.hue = parseFloat(this.hue);
+            },
+            rotation: function() {
+                this.node.rotation = parseFloat(this.rotation);
             }
         },
         methods: {
-            reset: function () {
+            reset: function() {
                 this.node = JSON.parse(JSON.stringify(this.nodeInitial));
             },
-            createNode: function (event) {
+            resize: function() {
+                this.node.size = [parseFloat(this.size1), parseFloat(this.size2)];
+                let allAxes = this.axes(parseFloat(this.size1), parseFloat(this.size2));
+                this.node.axes.splice(allAxes.length);
+                this.node.axes.forEach(function(axis, index) {
+                    axis.angle = allAxes[index].angle;
+                    axis.position = allAxes[index].position;
+                });
+            },
+            rotate: function(angle) {
+                this.rotation += angle;
+            },
+            editNode: function(event) {
                 event.preventDefault();
+                if (this.state.selectedNodes.length === 0) {
+                    this.createNode();
+                }
+                if (this.state.selectedNodes.length === 1) {
+                    let oldNode = this.state.selectedNodes[0];
+                    let newNode = JSON.parse(JSON.stringify(this.node));
+                    newNode.position = oldNode.position;
+                    this.state.selectedNodes = [newNode];
+                    this.pushNode(newNode, oldNode.name);
+                }
+            },
+            createNode: function() {
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
 
-                this.node.position = {x: workspace.width / 2, y: workspace.height / 2};
+                let node = JSON.parse(JSON.stringify(this.node));
+                node.position = {x: workspace.width / 2, y: workspace.height / 2};
                 if (this.state.snapToGrid) {
-                    this.node.position.x = Math.round(this.node.position.x / this.gridSpacing) * this.gridSpacing;
-                    this.node.position.y = Math.round(this.node.position.y / this.gridSpacing) * this.gridSpacing;
+                    node.position.x = Math.round(this.node.position.x / this.gridSpacing) * this.gridSpacing;
+                    node.position.y = Math.round(this.node.position.y / this.gridSpacing) * this.gridSpacing;
                 }
-
-                this.state.nodes.push(this.node);
-                this.reset();
+                this.pushNode(node);
             },
-            onShadowAxisMouseDown: function (node, axis) {
+            deleteNode: function(event) {
+                event.preventDefault();
+                let selectedName = this.state.selectedNodes[0].name;
+
+                this.state.edges = this.state.edges.filter(function(edge) {
+                    return edge[0][0] !== selectedName && edge[1][0] !== selectedName
+                });
+                this.state.nodes = this.state.nodes.filter(function(node) {
+                    return node.name !== selectedName;
+                });
+                this.state.selectedNodes = [];
+            },
+            pushNode: function(node, originalName) {
+                // Eliminate edges that no longer connect to axes
+                this.state.edges = this.state.edges.filter(function(edge) {
+                    if (edge[0][0] === node.name || edge[0][0] === originalName) {
+                        return edge[0][1] < node.axes.length;
+                    }
+                    if (edge[1][0] === node.name || edge[1][0] === originalName) {
+                        return edge[1][1] < node.axes.length
+                    }
+                });
+                // Rename edges if there is a name change
+                if (originalName) {
+                    this.state.edges.forEach(function(edge) {
+                        if (edge[0][0] === originalName) {
+                            edge[0].splice(0, 1, node.name);
+                        }
+                        if (edge[1][0] === originalName) {
+                            edge[1].splice(0, 1, node.name);
+                        }
+                    });
+                }
+                // Actually insert the node object in state.nodes
+                for (let i = 0; i < this.state.nodes.length; i++) {
+                    if (this.state.nodes[i].name === originalName
+                        || this.state.nodes[i].name === node.name) {
+                        this.state.nodes.splice(i, 1, node);
+                        return;
+                    }
+                }
+                this.state.nodes.push(this.node);
+            },
+            onShadowAxisMouseDown: function(node, axis) {
                 let candidateAxis = this.nodeShadow.axes[axis];
                 for (let j = 0; j < this.node.axes.length; j++) {
                     let existingAxis = this.node.axes[j];
@@ -192,11 +244,11 @@ Vue.component(
                 }
                 this.node.axes.push(JSON.parse(JSON.stringify(candidateAxis)));
             },
-            onNodeAxisMouseDown: function (node, axis) {
+            onNodeAxisMouseDown: function(node, axis) {
                 this.node.axes.splice(axis, 1);
             },
-            axes: function (size1, size2) {
-                let makeAxis = function (direction, position) {
+            axes: function(size1, size2) {
+                let makeAxis = function(direction, position) {
                     return {name: null, angle: direction * Math.PI / 4, position: position};
                 };
                 let output = [];
@@ -241,11 +293,11 @@ Vue.component(
 
                 return output;
             },
-            onMouseDown: function (event) {
+            onMouseDown: function(event) {
                 document.addEventListener('mousemove', this.onMouseMove);
                 document.addEventListener('mouseup', this.onMouseUp);
 
-                let workspace = document.getElementById('tensor-creator-workspace').getBoundingClientRect();
+                let workspace = document.getElementById('tensor-editor-workspace').getBoundingClientRect();
 
                 this.dragSelector.dragging = true;
                 this.dragSelector.startX = event.clientX - workspace.left;
@@ -253,13 +305,13 @@ Vue.component(
                 this.dragSelector.endX = event.clientX - workspace.left;
                 this.dragSelector.endY = event.clientY - workspace.top;
             },
-            onMouseMove: function (event) {
-                let workspace = document.getElementById('tensor-creator-workspace').getBoundingClientRect();
+            onMouseMove: function(event) {
+                let workspace = document.getElementById('tensor-editor-workspace').getBoundingClientRect();
 
                 this.dragSelector.endX = event.clientX - workspace.left;
                 this.dragSelector.endY = event.clientY - workspace.top;
             },
-            onMouseUp: function () {
+            onMouseUp: function() {
                 document.removeEventListener('mousemove', this.onMouseMove);
                 document.removeEventListener('mouseup', this.onMouseUp);
 
@@ -296,12 +348,19 @@ Vue.component(
             }
         },
         computed: {
+            createMode: function() {
+                return this.state.selectedNodes.length === 0;
+            },
             createNodeDisabled: function() {
-                return this.nameTaken || this.node.name == null || this.node.name === '';
+                return this.node.name == null || this.node.name === '' || this.nameTaken;
             },
             nameTaken: function() {
                 for (let i = 0; i < this.state.nodes.length; i++) {
                     if (this.node.name === this.state.nodes[i].name) {
+                        if (this.state.selectedNodes.length === 1) {
+                            // If editing and not changing name, don't count as taken.
+                            return this.state.nodes[i] !== this.state.selectedNodes[0];
+                        }
                         return true;
                     }
                 }
@@ -313,7 +372,7 @@ Vue.component(
                     size: [parseFloat(this.size1), parseFloat(this.size2)],
                     axes: [],
                     position: {x: 125, y: 125},
-                    rotation: 0,
+                    rotation: parseFloat(this.rotation),
                     hue: parseFloat(this.hue)
                 };
             },
@@ -323,7 +382,7 @@ Vue.component(
                     size: [parseFloat(this.size1), parseFloat(this.size2)],
                     axes: this.axes(parseFloat(this.size1), parseFloat(this.size2)),
                     position: {x: 125, y: 125},
-                    rotation: 0,
+                    rotation: parseFloat(this.rotation),
                     hue: null
                 };
             },
@@ -333,11 +392,15 @@ Vue.component(
             }
         },
         template: `
-            <section class="tensor-creator">
-                <h2>Create New Node</h2>
-                <p>Click on an axis to add or remove it.</p>
+            <section class="tensor-editor">
+                <h2 v-if="createMode">Create New Node</h2>
+                <div v-else>
+                    <a class="delete" href="" @click="deleteNode(event)">delete</a>
+                    <h2>Edit Node {{state.selectedNodes[0].name}}</h2>
+                </div>
+                <p>Click on an axis to add or remove it. Drag-select to add multiple axes.</p>
                 <div class="svg-container">
-                    <svg class="workspace" id="tensor-creator-workspace" xmlns="http://www.w3.org/2000/svg" :width="width" :height="height"
+                    <svg class="workspace" id="tensor-editor-workspace" xmlns="http://www.w3.org/2000/svg" :width="width" :height="height"
                         @mousedown="onMouseDown">
                         <node :node="nodeShadow" :state="state" :disableDragging="true" :shadow="true"
                             @axismousedown="onShadowAxisMouseDown(node, ...arguments)" />
@@ -358,11 +421,17 @@ Vue.component(
                     <label>Color</label>
                     <input type="range" v-model="hue" min="0" max="359" step="1" class="slider">
                 </div>
+                <div>
+                    <h4>Rotate</h4>
+                    <button @click="rotate(-Math.PI / 4)">Counterclockwise</button>
+                    <button @click="rotate(Math.PI / 4)">Clockwise</button>
+                </div>
                 <div class="button-holder">
-                    <form @submit="createNode">
+                    <h4>Name</h4>
+                    <form @submit="editNode">
                         <input type="text" v-model="node.name" placeholder="node name" />
                         <input type="text" v-if="renderLaTeX" v-model="node.displayName" placeholder="LaTeX label" />
-                        <input type="submit" value="Create" :disabled="createNodeDisabled" />
+                        <input type="submit" :value="createMode ? 'Create' : 'Edit'" :disabled="createNodeDisabled" />
                     </form>
                 </div>
             </section>
