@@ -144,7 +144,6 @@ Vue.component(
             },
             hue: function() {
                 this.node.hue = parseFloat(this.hue);
-                this.editNode();
             },
             rotation: function() {
                 this.node.rotation = parseFloat(this.rotation);
@@ -163,7 +162,6 @@ Vue.component(
                     axis.angle = allAxes[index].angle;
                     axis.position = allAxes[index].position;
                 });
-                this.editNode();
             },
             rotate: function(angle) {
                 this.rotation += angle;
@@ -423,15 +421,15 @@ Vue.component(
                     </svg>
                 </div>
                     <label>Width {{size1}}</label>
-                    <input type="range" v-model="size1" min="1" max="7" step="1" class="slider">
+                    <input type="range" v-model="size1" min="1" max="7" step="1" class="slider" @mouseup="editNode">
                 </div>
                 </div>
                     <label>Height {{size2}}</label>
-                    <input type="range" v-model="size2" min="1" max="7" step="1" class="slider">
+                    <input type="range" v-model="size2" min="1" max="7" step="1" class="slider" @mouseup="editNode">
                 </div>
                 <div>
                     <label>Color</label>
-                    <input type="range" v-model="hue" min="0" max="359" step="1" class="slider">
+                    <input type="range" v-model="hue" min="0" max="359" step="1" class="slider" @mouseup="editNode">
                 </div>
                 <div>
                     <h4>Rotate</h4>

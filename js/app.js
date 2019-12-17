@@ -89,6 +89,9 @@ let app = new Vue({
     watch: {
         state: {
             handler: function() {
+                if (this.state.draggingNode) {
+                    return;
+                }
                 window.localStorage.setItem("state", JSON.stringify(this.state));
             },
             deep: true

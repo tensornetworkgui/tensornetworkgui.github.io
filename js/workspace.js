@@ -40,7 +40,9 @@ Vue.component(
 		},
         methods: {
             onMouseDown: function(event) {
-                this.state.selectedNodes = [];
+                if (this.state.selectedNodes.length > 0) {
+                    this.state.selectedNodes = [];
+                }
 
                 document.addEventListener('mousemove', this.onMouseMove);
                 document.addEventListener('mouseup', this.onMouseUp);
@@ -70,7 +72,9 @@ Vue.component(
                 let y1 = this.dragSelector.startY;
                 let y2 = this.dragSelector.endY;
 
-                this.state.selectedNodes = [];
+                if (this.state.selectedNodes.length > 0) {
+                    this.state.selectedNodes = [];
+                }
                 let selected = this.state.selectedNodes;
                 this.state.nodes.forEach(function(node) {
                     let x = node.position.x;
@@ -81,11 +85,13 @@ Vue.component(
                         }
                     }
                 });
-                this.state.selectedNodes.sort(function(node1, node2) {
-                    let distance1 = (node1.position.x - x1) ** 2 + (node1.position.y - y1) ** 2;
-                    let distance2 = (node2.position.x - x1) ** 2 + (node2.position.y - y1) ** 2;
-                    return distance1 - distance2;
-                })
+                if (selected.length > 0) {
+                    selected.sort(function (node1, node2) {
+                        let distance1 = (node1.position.x - x1) ** 2 + (node1.position.y - y1) ** 2;
+                        let distance2 = (node2.position.x - x1) ** 2 + (node2.position.y - y1) ** 2;
+                        return distance1 - distance2;
+                    })
+                }
             },
             onAxisMouseDown: function(node, axis) {
                 if (this.axisOccupied(node, axis)) {
