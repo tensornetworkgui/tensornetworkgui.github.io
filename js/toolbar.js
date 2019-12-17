@@ -144,9 +144,11 @@ Vue.component(
             },
             hue: function() {
                 this.node.hue = parseFloat(this.hue);
+                this.editNode();
             },
             rotation: function() {
                 this.node.rotation = parseFloat(this.rotation);
+                this.editNode();
             }
         },
         methods: {
@@ -161,22 +163,29 @@ Vue.component(
                     axis.angle = allAxes[index].angle;
                     axis.position = allAxes[index].position;
                 });
+                this.editNode();
             },
             rotate: function(angle) {
                 this.rotation += angle;
             },
-            editNode: function(event) {
+            updateNode: function(event) {
                 event.preventDefault();
-                if (this.state.selectedNodes.length === 0) {
+                if (this.createMode) {
                     this.createNode();
                 }
-                if (this.state.selectedNodes.length === 1) {
-                    let oldNode = this.state.selectedNodes[0];
-                    let newNode = JSON.parse(JSON.stringify(this.node));
-                    newNode.position = oldNode.position;
-                    this.state.selectedNodes = [newNode];
-                    this.pushNode(newNode, oldNode.name);
+                else {
+                    this.editNode();
                 }
+            },
+            editNode: function(event) {
+                if (this.createMode) {
+                    return;
+                }
+                let oldNode = this.state.selectedNodes[0];
+                let newNode = JSON.parse(JSON.stringify(this.node));
+                newNode.position = oldNode.position;
+                this.state.selectedNodes = [newNode];
+                this.pushNode(newNode, oldNode.name);
             },
             createNode: function() {
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
@@ -243,9 +252,11 @@ Vue.component(
                     }
                 }
                 this.node.axes.push(JSON.parse(JSON.stringify(candidateAxis)));
+                this.editNode();
             },
             onNodeAxisMouseDown: function(node, axis) {
                 this.node.axes.splice(axis, 1);
+                this.editNode();
             },
             axes: function(size1, size2) {
                 let makeAxis = function(direction, position) {
@@ -345,6 +356,7 @@ Vue.component(
                         }
                     }
                 }
+                this.editNode();
             }
         },
         computed: {
@@ -428,7 +440,7 @@ Vue.component(
                 </div>
                 <div class="button-holder">
                     <h4>Name</h4>
-                    <form @submit="editNode">
+                    <form @submit="updateNode">
                         <input type="text" v-model="node.name" placeholder="node name" />
                         <input type="text" v-if="renderLaTeX" v-model="node.displayName" placeholder="LaTeX label" />
                         <input type="submit" :value="createMode ? 'Create' : 'Edit'" :disabled="createNodeDisabled" />
