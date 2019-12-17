@@ -15,7 +15,11 @@
 let app = new Vue({
     el: '#app',
     data: {
-        state: initialState // now state object is reactive, whereas initialState is not
+        state: initialState, // now state object is reactive, whereas initialState is not
+        pastStates: [], // used for undo
+        futureStates: [], // used for redo
+        undoing: false,
+        redoing: false
     },
     methods: {
         newWorkspace: function(event) {
@@ -69,6 +73,18 @@ let app = new Vue({
                 console.error(event.target.result);
             }
             document.getElementById('load-file').value = null;
+        },
+        undo: function(event) {
+            if (this.pastStates.length > 1) {
+                this.undoing = true;
+                this.futureStates.push(JSON.stringify(this.state));
+                this.pastStates.pop();
+                this.state = JSON.parse(this.pastStates[this.pastStates.length - 1]);
+            }
+        },
+        redo: function(event) {
+            this.redoing = true;
+            this.state = JSON.parse(this.futureStates.pop());
         }
     },
     mounted: function() {
@@ -92,7 +108,16 @@ let app = new Vue({
                 if (this.state.draggingNode) {
                     return;
                 }
-                window.localStorage.setItem("state", JSON.stringify(this.state));
+                let encodedState = JSON.stringify(this.state);
+                window.localStorage.setItem("state", encodedState);
+                if (!this.undoing) {
+                    this.pastStates.push(encodedState);
+                }
+                if (!this.undoing && !this.redoing) {
+                    this.futureStates = [];
+                }
+                this.undoing = false;
+                this.redoing = false;
             },
             deep: true
         }
@@ -110,6 +135,8 @@ let app = new Vue({
                 </span>
                 <label for="load-file">Load workspace from SVG</label>
                 <input type="file" id="load-file" accept="image/svg+xml" @change="loadFile($event.target.files)">
+                <button @click="undo" :disabled="pastStates.length <= 1">Undo</button>
+                <button @click="redo" :disabled="futureStates.length === 0">Redo</button>
             </div>
 			<toolbar :state="state" />
             <code-output :state="state" />
