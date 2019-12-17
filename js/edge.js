@@ -20,6 +20,17 @@ Vue.component(
             edge: Array,
             state: Object
         },
+        methods: {
+            deleteEdge: function() {
+                console.log('delete');
+                let t = this;
+                this.state.edges = this.state.edges.filter(function(edge) {
+                    // return edge[0][0] !== this.edge[0][0] || edge[0][1] !== this.edge[0][1]
+                    //     || edge[1][0] !== this.edge[1][0] || edge[1][1] !== this.edge[1][1];
+                    return edge !== t.edge;
+                });
+            }
+        },
         computed: {
             node1: function() {
                 return this.getNode(this.edge[0][0]);
@@ -47,7 +58,7 @@ Vue.component(
             }
         },
         template: `
-            <g>
+            <g @click="deleteEdge">
                 <line class="edge" :x1="x1" :y1="y1" :x2="x2" :y2="y2"
                     stroke="#ddd" stroke-width="5" stroke-linecap="round" />
                 <text v-if="edge[2]" :x="0.5 * (x1 + x2)" :y="0.5 * (y1 + y2)"
