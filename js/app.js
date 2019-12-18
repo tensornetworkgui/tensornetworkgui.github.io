@@ -14,6 +14,7 @@
 
 let app = new Vue({
     el: '#app',
+    mixins: [mixinDelete],
     data: {
         state: initialState, // now state object is reactive, whereas initialState is not
         pastStates: [], // used for undo
@@ -23,7 +24,9 @@ let app = new Vue({
     },
     methods: {
         newWorkspace: function(event) {
-            event.preventDefault();
+            if (event != null) {
+                event.preventDefault();
+            }
             let proceed = window.confirm("Are you sure you want to delete this workspace and start a new one?");
             if (proceed) {
                 window.localStorage.setItem("state", null);
@@ -31,7 +34,9 @@ let app = new Vue({
             }
         },
         exportSVG: function(event) {
-            event.preventDefault();
+            if (event != null) {
+                event.preventDefault();
+            }
             let serializer = new XMLSerializer();
             let workspace = document.getElementById('workspace');
             let savedState = document.getElementById('saved-state');
@@ -68,10 +73,10 @@ let app = new Vue({
                         alert("ERROR: Could not read the saved workspace inside " + file.name);
                     }
                 }
-            }
+            };
             reader.onerror = function(event) {
                 console.error(event.target.result);
-            }
+            };
             document.getElementById('load-file').value = null;
         },
         undo: function(event) {
@@ -83,8 +88,49 @@ let app = new Vue({
             }
         },
         redo: function(event) {
-            this.redoing = true;
-            this.state = JSON.parse(this.futureStates.pop());
+            if (this.futureStates.length > 0) {
+                this.redoing = true;
+                this.state = JSON.parse(this.futureStates.pop());
+            }
+        },
+        keyPressed: function(event) {
+            let char;
+            if (event.which == null) {
+                char = String.fromCharCode(event.keyCode);
+            }
+            else if (event.which !== 0 && event.charCode !== 0) {
+                char = String.fromCharCode(event.which);
+            }
+            if (char === 'n') {
+                this.newWorkspace();
+            }
+            else if (char === 'e') {
+                this.exportSVG();
+            }
+            else if (char === 'o') {
+                document.getElementById('load-file').click();
+            }
+            else if (char === 'z') {
+                this.undo();
+            }
+            else if (char === 'r') {
+                this.redo();
+            }
+            else if (char === 'a') {
+                let allNodes = [];
+                this.state.nodes.forEach(function(node) {
+                    allNodes.push(node);
+                });
+                this.state.selectedNodes = allNodes;
+            }
+            else if (char === 'd') {
+                this.state.selectedNodes = [];
+            }
+        },
+        keyDown: function(event) {
+            if (event.key === 'Backspace') {
+                this.deleteSelectedNodes();
+            }
         }
     },
     mounted: function() {
@@ -101,6 +147,8 @@ let app = new Vue({
             this.state.nodes = JSON.parse(JSON.stringify(exampleState.nodes));
             this.state.edges = JSON.parse(JSON.stringify(exampleState.edges));
         }
+        document.addEventListener('keypress', this.keyPressed);
+        document.addEventListener('keydown', this.keyDown);
     },
     watch: {
         state: {
@@ -133,7 +181,7 @@ let app = new Vue({
                     <input type="checkbox" id="checkbox-snapToGrid" v-model="state.snapToGrid">
                     <label for="checkbox-snapToGrid">Snap to grid</label>
                 </span>
-                <label for="load-file">Load workspace from SVG</label>
+                <label for="load-file">Open SVG</label>
                 <input type="file" id="load-file" accept="image/svg+xml" @change="loadFile($event.target.files)">
                 <button @click="undo" :disabled="pastStates.length <= 1">Undo</button>
                 <button @click="redo" :disabled="futureStates.length === 0">Redo</button>

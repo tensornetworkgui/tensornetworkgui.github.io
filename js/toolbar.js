@@ -25,6 +25,9 @@ Vue.component(
             }
         },
         methods: {
+            stopPropagation: function(event) {
+                event.stopPropagation();
+            },
             deselectNode: function() {
                 this.state.selectedNodes = [];
             },
@@ -77,7 +80,8 @@ Vue.component(
                         </div>
                         <h4>Copy Node</h4>
                         <form @submit="copyNode">
-                            <input type="text" v-model="copyNodeName" placeholder="name of copy" />
+                            <input type="text" v-model="copyNodeName" @keypress="stopPropagation" @keydown="stopPropagation"
+                                placeholder="name of copy" />
                             <input type="submit" value="Copy" :disabled="copyNodeDisabled" />
                         </form>
                     </section>
@@ -97,7 +101,7 @@ Vue.component(
 Vue.component(
     'tensor-editor',
     {
-        mixins: [mixinGeometry],
+        mixins: [mixinGeometry, mixinDelete],
         props: {
             state: Object
         },
@@ -151,6 +155,9 @@ Vue.component(
             }
         },
         methods: {
+            stopPropagation: function(event) {
+                event.stopPropagation();
+            },
             reset: function() {
                 this.node = JSON.parse(JSON.stringify(this.nodeInitial));
             },
@@ -198,15 +205,7 @@ Vue.component(
             },
             deleteNode: function(event) {
                 event.preventDefault();
-                let selectedName = this.state.selectedNodes[0].name;
-
-                this.state.edges = this.state.edges.filter(function(edge) {
-                    return edge[0][0] !== selectedName && edge[1][0] !== selectedName
-                });
-                this.state.nodes = this.state.nodes.filter(function(node) {
-                    return node.name !== selectedName;
-                });
-                this.state.selectedNodes = [];
+                this.deleteSelectedNodes();
             },
             pushNode: function(node, originalName) {
                 // Eliminate edges that no longer connect to axes
@@ -439,8 +438,9 @@ Vue.component(
                 <div class="button-holder">
                     <h4>Name</h4>
                     <form @submit="updateNode">
-                        <input type="text" v-model="node.name" placeholder="node name" />
-                        <input type="text" v-if="renderLaTeX" v-model="node.displayName" placeholder="LaTeX label" />
+                        <input type="text" v-model="node.name" @keypress="stopPropagation" @keydown="stopPropagation" placeholder="node name" />
+                        <input type="text" v-if="renderLaTeX" v-model="node.displayName" @keypress="stopPropagation" @keydown="stopPropagation" 
+                            placeholder="LaTeX label" />
                         <input type="submit" :value="createMode ? 'Create' : 'Edit'" :disabled="createNodeDisabled" />
                     </form>
                 </div>
@@ -457,6 +457,9 @@ Vue.component(
             state: Object
         },
         methods: {
+            stopPropagation: function(event) {
+                event.stopPropagation();
+            },
             deleteEdge: function(event, edge) {
                 event.preventDefault();
                 this.state.edges = this.state.edges.filter(function(candidate) {
@@ -479,7 +482,8 @@ Vue.component(
                             <h4>{{edge[0][0]}}[{{edge[0][1]}}] to {{edge[1][0]}}[{{edge[1][1]}}]</h4>
                         </div>
                         <label for="edge-name-input">Name</label>
-                        <input id="edge-name-input" type="text" v-model="edge[2]" placeholder="edge name" />
+                        <input id="edge-name-input" type="text" v-model="edge[2]" @keypress="stopPropagation" @keydown="stopPropagation"
+                            placeholder="edge name" />
                     </div>
                 </div>
             </section>
@@ -492,6 +496,11 @@ Vue.component(
     {
         props: {
             state: Object
+        },
+        methods: {
+            stopPropagation: function(event) {
+                event.stopPropagation();
+            }
         },
         computed: {
             node: function() {
@@ -506,7 +515,8 @@ Vue.component(
                         <h4>{{node.name}}[{{index}}]</h4>
                     </div>
                     <label for="axis-name-input">Name</label>
-                    <input id="axis-name-input" type="text" v-model="node.axes[index].name" placeholder="axis name" />
+                    <input id="axis-name-input" type="text" v-model="node.axes[index].name" @keypress="stopPropagation" @keydown="stopPropagation"
+                        placeholder="axis name" />
                 </div>
             </section>
         `
@@ -516,6 +526,7 @@ Vue.component(
 Vue.component(
     'toolbar-multinode-section',
     {
+        mixins: [mixinDelete],
         props: {
             state: Object
         },
@@ -534,6 +545,10 @@ Vue.component(
             this.spacingX = this.state.selectedNodes[1].position.x - this.state.selectedNodes[0].position.x;
         },
         methods: {
+            deleteNodes: function(event) {
+                event.preventDefault();
+                this.deleteSelectedNodes();
+            },
             alignVertically: function(event) {
                 event.preventDefault();
                 for (let i = 0; i < this.state.selectedNodes.length; i++) {
@@ -567,7 +582,10 @@ Vue.component(
         template: `
             <div>
                 <section>
-                    <h2>Multiple Nodes</h2>
+                    <div>
+                        <a class="delete" href="" @click="deleteNodes(event)">delete</a>
+                        <h2>Multiple Nodes</h2>
+                    </div>
                     <div v-for="node in state.selectedNodes">
                         <p><strong>{{node.name}}</strong> - <em>x</em>: {{node.position.x}}, <em>y</em>: {{node.position.y}}</p>
                     </div>
