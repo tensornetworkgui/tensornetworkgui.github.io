@@ -20,7 +20,8 @@ let app = new Vue({
         pastStates: [], // used for undo
         futureStates: [], // used for redo
         undoing: false,
-        redoing: false
+        redoing: false,
+        help: false
     },
     methods: {
         newWorkspace: function(event) {
@@ -92,6 +93,13 @@ let app = new Vue({
                 this.redoing = true;
                 this.state = JSON.parse(this.futureStates.pop());
             }
+        },
+        openHelp: function(event) {
+            event.preventDefault();
+            this.help = true;
+        },
+        closeHelp: function() {
+            this.help = false;
         },
         keyPressed: function(event) {
             let char;
@@ -185,10 +193,44 @@ let app = new Vue({
                 <input type="file" id="load-file" accept="image/svg+xml" @change="loadFile($event.target.files)">
                 <button @click="undo" :disabled="pastStates.length <= 1">Undo</button>
                 <button @click="redo" :disabled="futureStates.length === 0">Redo</button>
+                <a href="" class="export" @click="openHelp">Help</a>
             </div>
 			<toolbar :state="state" />
             <code-output :state="state" />
+            <help-window :open="help" @close="closeHelp()" />
         </div>
 
     `
 });
+
+Vue.component(
+    'help-window',
+    {
+        props: {
+            open: Boolean
+        },
+        methods: {
+            close: function(event) {
+                event.preventDefault();
+                this.$emit('close');
+            }
+        },
+        template: `
+            <div class="help-window" v-if="open">
+                <a class="delete" href="" @click="close">close</a>
+                <h2>Help</h2>
+                <h3>Hotkeys</h3>
+                <ul>
+                    <li><strong>N</strong> - new workspace</li>
+                    <li><strong>E</strong> - export SVG</li>
+                    <li><strong>O</strong> - open SVG</li>
+                    <li><strong>Z</strong> - undo</li>
+                    <li><strong>R</strong> - redo</li>
+                    <li><strong>A</strong> - select all nodes</li>
+                    <li><strong>D</strong> - deselect nodes</li>
+                    <li><strong>Backspace</strong> - delete selected nodes</li>
+                </ul>
+            </div>
+        `
+    }
+);
