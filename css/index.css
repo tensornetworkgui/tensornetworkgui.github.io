@@ -91,13 +91,26 @@ section {
 
 .code-output {
 	position: absolute;
-	top: 600px;
+	top: 620px;
 	width: 800px;
 	padding: 10px;
 }
 
+@keyframes flash {
+	from {opacity: 0;}
+	to {opacity: 1;}
+}
+
+.code-output code.copied {
+	animation-name: flash;
+	animation-duration: 200ms;
+}
+
+.code-output button.copy {
+	float: right;
+}
+
 pre {
-	padding: 10px;
 	overflow-x: auto;
 	white-space: pre-wrap;
 	word-wrap: break-spaces;
