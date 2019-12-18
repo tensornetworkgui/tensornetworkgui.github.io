@@ -124,6 +124,9 @@ let app = new Vue({
             else if (char === 'r') {
                 this.redo();
             }
+            else if (char === 'c') {
+                document.getElementById('copy-button').click();
+            }
             else if (char === 'a') {
                 let allNodes = [];
                 this.state.nodes.forEach(function(node) {
@@ -226,6 +229,7 @@ Vue.component(
                     <li><strong>O</strong> - open SVG</li>
                     <li><strong>Z</strong> - undo</li>
                     <li><strong>R</strong> - redo</li>
+                    <li><strong>C</strong> - copy code output to clipboard</li>
                     <li><strong>A</strong> - select all nodes</li>
                     <li><strong>D</strong> - deselect nodes</li>
                     <li><strong>Backspace</strong> - delete selected nodes</li>

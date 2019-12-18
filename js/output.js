@@ -147,7 +147,7 @@ Vue.component(
                         <input type="checkbox" id="checkbox-ncon" v-model="ncon">
                         <label for="checkbox-ncon">Use <code>ncon()</code></label>
                     </span>
-                    <button class="copy" @click="copy">Copy to clipboard</button>
+                    <button id="copy-button" @click="copy">Copy to clipboard</button>
                 </span>
                 <pre><code class="hljs" :class="{'copied': copied}" v-html="highlightedCode"></code></pre>
 			</div>

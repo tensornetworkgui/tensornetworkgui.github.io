@@ -106,7 +106,7 @@ section {
 	animation-duration: 200ms;
 }
 
-.code-output button.copy {
+.code-output #copy-button {
 	float: right;
 }
 
