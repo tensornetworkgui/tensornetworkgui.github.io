@@ -101,47 +101,51 @@ let app = new Vue({
         closeHelp: function() {
             this.help = false;
         },
-        keyPressed: function(event) {
+        keyDown: function(event) {
+            if (event.key === 'Backspace') {
+                this.deleteSelectedNodes();
+            }
+            if (!event.metaKey && !event.ctrlKey) {
+                return;
+            }
             let char;
-            if (event.which == null) {
-                char = String.fromCharCode(event.keyCode);
-            }
-            else if (event.which !== 0 && event.charCode !== 0) {
-                char = String.fromCharCode(event.which);
-            }
-            if (char === 'n') {
-                this.newWorkspace();
-            }
-            else if (char === 'e') {
+            char = String.fromCharCode(event.which);
+            if (char === 'S') {
                 this.exportSVG();
             }
-            else if (char === 'o') {
-                document.getElementById('load-file').click();
+            else if (char === 'O') {
+                if (event.shiftKey) {
+                    this.newWorkspace();
+                }
+                else {
+                    document.getElementById('load-file').click();
+                }
             }
-            else if (char === 'z') {
-                this.undo();
+            else if (char === 'Z') {
+                if (event.shiftKey) {
+                    this.redo();
+                }
+                else {
+                    this.undo();
+                }
             }
-            else if (char === 'r') {
-                this.redo();
-            }
-            else if (char === 'c') {
+            else if (char === 'C') {
                 document.getElementById('copy-button').click();
             }
-            else if (char === 'a') {
+            else if (char === 'A') {
                 let allNodes = [];
                 this.state.nodes.forEach(function(node) {
                     allNodes.push(node);
                 });
                 this.state.selectedNodes = allNodes;
             }
-            else if (char === 'd') {
+            else if (char === 'D') {
                 this.state.selectedNodes = [];
             }
-        },
-        keyDown: function(event) {
-            if (event.key === 'Backspace') {
-                this.deleteSelectedNodes();
+            else {
+                return;
             }
+            event.preventDefault(); event.stopPropagation();
         }
     },
     mounted: function() {
@@ -158,7 +162,6 @@ let app = new Vue({
             this.state.nodes = JSON.parse(JSON.stringify(exampleState.nodes));
             this.state.edges = JSON.parse(JSON.stringify(exampleState.edges));
         }
-        document.addEventListener('keypress', this.keyPressed);
         document.addEventListener('keydown', this.keyDown);
     },
     watch: {
@@ -224,15 +227,15 @@ Vue.component(
                 <h2>Help</h2>
                 <h3>Hotkeys</h3>
                 <ul>
-                    <li><strong>N</strong> - new workspace</li>
-                    <li><strong>E</strong> - export SVG</li>
-                    <li><strong>O</strong> - open SVG</li>
-                    <li><strong>Z</strong> - undo</li>
-                    <li><strong>R</strong> - redo</li>
-                    <li><strong>C</strong> - copy code output to clipboard</li>
-                    <li><strong>A</strong> - select all nodes</li>
-                    <li><strong>D</strong> - deselect nodes</li>
-                    <li><strong>Backspace</strong> - delete selected nodes</li>
+                    <li><strong>Ctrl+S</strong> / <strong>⌘S</strong> - export SVG</li>
+                    <li><strong>Ctrl+O</strong> / <strong>⌘O</strong> - open workspace from SVG</li>
+                    <li><strong>Shift+Ctrl+O</strong> / <strong>⇧⌘O</strong> - open new workspace</li>
+                    <li><strong>Ctrl+Z</strong> / <strong>⌘Z</strong> - undo</li>
+                    <li><strong>Shift+Ctrl+Z</strong> / <strong>⇧⌘Z</strong> - redo</li>
+                    <li><strong>Ctrl+C</strong> / <strong>⌘C</strong> - copy code output to clipboard</li>
+                    <li><strong>Ctrl+A</strong> / <strong>⌘A</strong> - select all nodes</li>
+                    <li><strong>Ctrl+D</strong> / <strong>⌘D</strong> - deselect nodes</li>
+                    <li><strong>Backspace</strong> / <strong>⌫</strong> - delete selected nodes</li>
                 </ul>
             </div>
         `
