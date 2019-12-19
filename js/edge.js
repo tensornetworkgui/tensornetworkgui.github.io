@@ -20,6 +20,11 @@ Vue.component(
             edge: Array,
             state: Object
         },
+        data: function() {
+            return {
+                highlighted: false
+            }
+        },
         methods: {
             deleteEdge: function() {
                 console.log('delete');
@@ -29,6 +34,15 @@ Vue.component(
                     //     || edge[1][0] !== this.edge[1][0] || edge[1][1] !== this.edge[1][1];
                     return edge !== t.edge;
                 });
+            },
+            onMouseEnter: function() {
+                if (this.state.draggingNode || this.state.draggingProtoEdge) {
+                    return;
+                }
+                this.highlighted = true;
+            },
+            onMouseLeave: function() {
+                this.highlighted = false;
             }
         },
         computed: {
@@ -55,12 +69,15 @@ Vue.component(
             },
             y2: function() {
                 return this.node2.position.y + this.getAxisPoints(this.node2.axes[this.edge[1][1]].position, this.angle2, this.node2.rotation).y2;
-            }
+            },
+            stroke: function() {
+                return this.highlighted ? '#bbb' : '#ddd';
+            },
         },
         template: `
-            <g @click="deleteEdge">
+            <g @click="deleteEdge" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
                 <line class="edge" :x1="x1" :y1="y1" :x2="x2" :y2="y2"
-                    stroke="#ddd" stroke-width="5" stroke-linecap="round" />
+                    :stroke="stroke" stroke-width="5" stroke-linecap="round" />
                 <text v-if="edge[2]" :x="0.5 * (x1 + x2)" :y="0.5 * (y1 + y2)"
                     style="font: normal 15px sans-serif; text-anchor: middle; dominant-baseline: middle;">
                     {{edge[2]}}

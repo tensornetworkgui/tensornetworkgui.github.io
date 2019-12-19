@@ -17,6 +17,7 @@ let initialState = {
     renderLaTeX: true,
     selectedNodes: [],
     draggingNode: false,
+    draggingProtoEdge: false,
     nodes: [],
     edges: []
 };

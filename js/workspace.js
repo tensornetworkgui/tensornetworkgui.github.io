@@ -34,7 +34,6 @@ Vue.component(
                     y: null,
                     node: null,
                     axis: null,
-                    dragging: false
                 }
 			};
 		},
@@ -104,19 +103,19 @@ Vue.component(
             },
             dragAxis: function(event) {
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
-                this.protoEdge.dragging = true;
+                this.state.draggingProtoEdge = true;
                 this.protoEdge.x = event.clientX - workspace.left;
                 this.protoEdge.y = event.clientY - workspace.top;
             },
             releaseAxisDrag: function() {
                 document.removeEventListener('mousemove', this.dragAxis);
                 document.removeEventListener('mouseup', this.releaseAxisDrag);
-                this.protoEdge.dragging = false;
+                this.state.draggingProtoEdge = false;
                 this.protoEdge.node = null;
                 this.protoEdge.axis = null;
             },
             onAxisMouseUp: function(node, axis) {
-		        if (this.protoEdge.dragging) {
+		        if (this.state.draggingProtoEdge) {
                     if (this.axisOccupied(node, axis)) {
                         return;
                     }
@@ -146,7 +145,7 @@ Vue.component(
 			<svg class="workspace" id="workspace" xmlns="http://www.w3.org/2000/svg"
 			    :width="width" :height="height" @mousedown="onMouseDown">
                 <text id="saved-state" display="none"></text>
-                <proto-edge v-if="protoEdge.dragging" :x="protoEdge.x" :y="protoEdge.y"
+                <proto-edge v-if="state.draggingProtoEdge" :x="protoEdge.x" :y="protoEdge.y"
 				    :node="protoEdge.node" :axis="protoEdge.axis" />
 				<edge v-for="edge in state.edges" :edge="edge" :state="state" /> 
 				<node v-for="node in state.nodes" :node="node" :state="state"
