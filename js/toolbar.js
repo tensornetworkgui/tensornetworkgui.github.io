@@ -216,6 +216,7 @@ Vue.component(
                     if (edge[1][0] === node.name || edge[1][0] === originalName) {
                         return edge[1][1] < node.axes.length
                     }
+                    return true;
                 });
                 // Rename edges if there is a name change
                 if (originalName) {
