@@ -20,7 +20,8 @@ Vue.component(
         },
         data: function() {
             return {
-                ncon: true  // Use ncon() in output code.
+                ncon: true, // Use ncon() in output code.
+                copied: false
             }
         },
         created: function() {
@@ -124,15 +125,31 @@ Vue.component(
             edgeName: function(edge) {
                 let name = edge[2];
                 return name ? `, name="${name}"` : ``;
+            },
+            copy: function() {
+                let codeText = document.createElement('textarea');
+                codeText.value = this.outputCode;
+                document.body.appendChild(codeText);
+                codeText.select();
+                document.execCommand('copy');
+                document.body.removeChild(codeText);
+                this.copied = true;
+                let t = this;
+                setTimeout(function() {
+                    t.copied = false;
+                }, 200);
             }
         },
 		template: `
 			<div class="code-output">
-			    <span class="checkbox-holder">
-                    <input type="checkbox" id="checkbox-ncon" v-model="ncon">
-                    <label for="checkbox-ncon">Use <code>ncon()</code></label>
+			    <span>
+                    <span class="checkbox-holder">
+                        <input type="checkbox" id="checkbox-ncon" v-model="ncon">
+                        <label for="checkbox-ncon">Use <code>ncon()</code></label>
+                    </span>
+                    <button id="copy-button" @click="copy">Copy to clipboard</button>
                 </span>
-                <pre><code class="hljs" v-html="highlightedCode"></code></pre>
+                <pre><code class="hljs" :class="{'copied': copied}" v-html="highlightedCode"></code></pre>
 			</div>
 		`
 	}

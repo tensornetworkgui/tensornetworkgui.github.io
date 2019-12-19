@@ -34,13 +34,14 @@ Vue.component(
                     y: null,
                     node: null,
                     axis: null,
-                    dragging: false
                 }
 			};
 		},
         methods: {
             onMouseDown: function(event) {
-                this.state.selectedNodes = [];
+                if (this.state.selectedNodes.length > 0) {
+                    this.state.selectedNodes = [];
+                }
 
                 document.addEventListener('mousemove', this.onMouseMove);
                 document.addEventListener('mouseup', this.onMouseUp);
@@ -70,7 +71,9 @@ Vue.component(
                 let y1 = this.dragSelector.startY;
                 let y2 = this.dragSelector.endY;
 
-                this.state.selectedNodes = [];
+                if (this.state.selectedNodes.length > 0) {
+                    this.state.selectedNodes = [];
+                }
                 let selected = this.state.selectedNodes;
                 this.state.nodes.forEach(function(node) {
                     let x = node.position.x;
@@ -81,11 +84,13 @@ Vue.component(
                         }
                     }
                 });
-                this.state.selectedNodes.sort(function(node1, node2) {
-                    let distance1 = (node1.position.x - x1) ** 2 + (node1.position.y - y1) ** 2;
-                    let distance2 = (node2.position.x - x1) ** 2 + (node2.position.y - y1) ** 2;
-                    return distance1 - distance2;
-                })
+                if (selected.length > 0) {
+                    selected.sort(function (node1, node2) {
+                        let distance1 = (node1.position.x - x1) ** 2 + (node1.position.y - y1) ** 2;
+                        let distance2 = (node2.position.x - x1) ** 2 + (node2.position.y - y1) ** 2;
+                        return distance1 - distance2;
+                    })
+                }
             },
             onAxisMouseDown: function(node, axis) {
                 if (this.axisOccupied(node, axis)) {
@@ -98,19 +103,19 @@ Vue.component(
             },
             dragAxis: function(event) {
                 let workspace = document.getElementById('workspace').getBoundingClientRect();
-                this.protoEdge.dragging = true;
+                this.state.draggingProtoEdge = true;
                 this.protoEdge.x = event.clientX - workspace.left;
                 this.protoEdge.y = event.clientY - workspace.top;
             },
             releaseAxisDrag: function() {
                 document.removeEventListener('mousemove', this.dragAxis);
                 document.removeEventListener('mouseup', this.releaseAxisDrag);
-                this.protoEdge.dragging = false;
+                this.state.draggingProtoEdge = false;
                 this.protoEdge.node = null;
                 this.protoEdge.axis = null;
             },
             onAxisMouseUp: function(node, axis) {
-		        if (this.protoEdge.dragging) {
+		        if (this.state.draggingProtoEdge) {
                     if (this.axisOccupied(node, axis)) {
                         return;
                     }
@@ -139,7 +144,8 @@ Vue.component(
 		template: `
 			<svg class="workspace" id="workspace" xmlns="http://www.w3.org/2000/svg"
 			    :width="width" :height="height" @mousedown="onMouseDown">
-                <proto-edge v-if="protoEdge.dragging" :x="protoEdge.x" :y="protoEdge.y"
+                <text id="saved-state" display="none"></text>
+                <proto-edge v-if="state.draggingProtoEdge" :x="protoEdge.x" :y="protoEdge.y"
 				    :node="protoEdge.node" :axis="protoEdge.axis" />
 				<edge v-for="edge in state.edges" :edge="edge" :state="state" /> 
 				<node v-for="node in state.nodes" :node="node" :state="state"

@@ -17,7 +17,13 @@ let initialState = {
     renderLaTeX: true,
     selectedNodes: [],
     draggingNode: false,
-    nodes: [
+    draggingProtoEdge: false,
+    nodes: [],
+    edges: []
+};
+
+let exampleState = {
+        nodes: [
         {
             name: 't1',
             displayName: 't_1',
@@ -27,7 +33,7 @@ let initialState = {
                 {name: null, angle: Math.PI / 2, position: [0, 0]},
                 {name: null, angle: Math.PI, position: [0, 0]},
             ],
-			position: {x: 200, y: 300},
+            position: {x: 200, y: 300},
             rotation: 0,
             hue: 175.5
         },

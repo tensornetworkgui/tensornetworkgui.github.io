@@ -52,6 +52,23 @@ let mixinGet = {
 	}
 };
 
+let mixinDelete = {
+	methods: {
+		deleteSelectedNodes: function() {
+			let t = this;
+			this.state.selectedNodes.forEach(function(selectedNode) {
+				t.state.edges = t.state.edges.filter(function(edge) {
+					return edge[0][0] !== selectedNode.name && edge[1][0] !== selectedNode.name
+				});
+				t.state.nodes = t.state.nodes.filter(function(node) {
+					return node.name !== selectedNode.name;
+				});
+			});
+			this.state.selectedNodes = [];
+		}
+	}
+};
+
 let mixinGeometry = {
 	data: function() {
 		return {
