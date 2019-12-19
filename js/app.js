@@ -129,6 +129,9 @@ let app = new Vue({
                     this.undo();
                 }
             }
+            else if (char === 'H') {
+                this.help = !this.help;
+            }
             else if (char === 'C') {
                 document.getElementById('copy-button').click();
             }
@@ -232,6 +235,7 @@ Vue.component(
                     <li><strong>Shift+Ctrl+O</strong> / <strong>⇧⌘O</strong> - open new workspace</li>
                     <li><strong>Ctrl+Z</strong> / <strong>⌘Z</strong> - undo</li>
                     <li><strong>Shift+Ctrl+Z</strong> / <strong>⇧⌘Z</strong> - redo</li>
+                    <li><strong>Ctrl+H</strong> / <strong>⌘H</strong> - show this help</li>
                     <li><strong>Ctrl+C</strong> / <strong>⌘C</strong> - copy code output to clipboard</li>
                     <li><strong>Ctrl+A</strong> / <strong>⌘A</strong> - select all nodes</li>
                     <li><strong>Ctrl+D</strong> / <strong>⌘D</strong> - deselect nodes</li>
